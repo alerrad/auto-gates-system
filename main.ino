@@ -20,9 +20,8 @@ const char pass[] = ""; // your wifi password
 #define RED_LED D0
 #define GREEN_LED D2
 
-long distance;
 bool open = false;
-String start;
+String start = "";
 
 Servo servo;
 WiFiClient wclient;
@@ -37,13 +36,15 @@ void setup() {
 
   while (WiFi.status() != WL_CONNECTED) { // Wait for the WiFI connection completion
     delay(500);
-    Serial.println("Waiting for connection");
-  } 
+    Serial.println("Waiting for connection...");
+  }
+  Serial.println("WiFi connected!");
 
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
   pinMode(RED_LED, OUTPUT);
   pinMode(GREEN_LED, OUTPUT);
+  digitalWrite(RED_LED, HIGH);
 
   Rtc.Begin();
   Rtc.SetDateTime(RtcDateTime(__DATE__, __TIME__));
@@ -55,21 +56,15 @@ void setup() {
 
 void loop() {
   RtcDateTime now = Rtc.GetDateTime();
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(2);
 
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-  
-  distance = pulseIn(ECHO_PIN, HIGH) * 0.034 / 2;
-
-  if (distance <= 40) {
+  if (getDistanceCm(TRIG_PIN, ECHO_PIN) <= 40) {
     servo.write(90);
+
     if (!open) {
       start = getDateTime(now);
       open = true;
     }
+
     digitalWrite(RED_LED, LOW);
     digitalWrite(GREEN_LED, HIGH);
     Blynk.virtualWrite(V0, "open");
@@ -78,11 +73,21 @@ void loop() {
     digitalWrite(RED_LED, HIGH);
     digitalWrite(GREEN_LED, LOW);
     Blynk.virtualWrite(V0, "closed");
+    
     if (open) {
       sendTimeStamp(start, getDateTime(now));
+      open = false;
     }
-    open = false;
   }
+}
+
+float getDistanceCm(const int TR, const int TX) {
+  digitalWrite(TR, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TR, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TR, LOW);
+  return pulseIn(TX, HIGH) * 0.034 / 2;
 }
 
 String getDateTime(const RtcDateTime& dt) {
@@ -97,7 +102,7 @@ String getDateTime(const RtcDateTime& dt) {
 
 void sendTimeStamp(String start, String end) {
   HTTPClient http;
-  http.begin(wclient, "http://your_host_ip:your_port/api/timestamp"); // put your host and port
+  http.begin(wclient, "http://your_host_ip:your_port/api/timestamp");
   http.addHeader("Content-Type", "application/json");
 
   String post_data = "{\"gateOpen\": \"" + start + "\", \"gateClosed\": \"" + end + "\", \"access_key\": \"87bf*@)pSDF\"}";
