@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/head'); %>
+</head>
+<body class="container">
+  <main class="container">
+    <div class="jumbotron">
+      <h1>Gatelog</h1>
+      <p>Timestamp records:</p>
+    </div>
+    <ul class="list-group" style="margin-top: 20px;">
+      <% timestamps.forEach(function(item) { %>
+        <%- include('../partials/timestamp', {
+          gateOpen: item.gateOpen,
+          gateClosed: item.gateClosed
+        }) %>
+      <% }) %>
+    </ul>
+  </main>
+</body>
+</html>

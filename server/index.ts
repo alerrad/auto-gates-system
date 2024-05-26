@@ -1,7 +1,8 @@
-import express, { Express } from "express";
+import express, { Express, Request } from "express";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cors from "cors";
 
 import {router} from "./src/routes";
 
@@ -9,12 +10,16 @@ import {router} from "./src/routes";
 dotenv.config();
 
 const app: Express = express();
+app.use(cors<Request>({
+    origin: process.env.GATE_IP,
+}));
 app.use(bodyParser.json());
+app.set("view engine", "ejs");
 
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || "";
 
-app.use("/api", router);
+app.use("/", router);
 
 app.listen(PORT, async () => {
     try {

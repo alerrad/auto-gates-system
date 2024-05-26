@@ -4,11 +4,7 @@ import timestamp from "../schemas/timestamp";
 
 export const getTimeStamps = async (req: Request, res: Response) => {
     const timestamps = await timestamp.find();
-
-    return res.json({
-        success: true,
-        timestamps,
-    });
+    res.render("pages/index", {timestamps});
 }
 
 export const addTimeStamp = async (req: Request, res: Response) => {
